@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <conio.h>
+#include <ctime>
 using namespace std;
 
 
@@ -149,7 +150,7 @@ void initialize()
                              //id,Current_location_x,  Current_location_y,  Infected,  Probability_of_infection,  House_address_x,  House_address_y,  Office_address_x,  Office_address_y)
     h1[1].initialize_variables(1, 3, 2, false, 0.200, 4, 4 );
     h1[2].initialize_variables(2, 5, 1, true, 0.450, 4, 4);
-    h2[1].initialize_variables(3, 2, 1, true, 0.450);
+    h2[1].initialize_variables(3, 2, 0, true, 0.450);
 
 }
 
@@ -196,7 +197,7 @@ void display_world()
 }
 
 
-//TODO: contact and probability of infection
+
 
 
 //movement of a human
@@ -332,6 +333,7 @@ void MoveToHouse(Working &h1)
 
 }
 
+
 void MakeMove(Working &h1)
 {
 
@@ -350,6 +352,107 @@ void MakeMove(Working &h1)
 
 //TODO: Display number of people currently infected and recovered.
 
+bool SearchNeighborhood(int x, int y)       //checks neighborhood for infected humans  return true if any neighbor has disease
+{
+
+   /*cout<<"here"<<endl;
+    cout<<world[y-1][x-1].occupied_by_id<<endl;
+    cout<<world[y-1][x].occupied_by_id<<endl;
+    cout<<world[y-1][x+1].occupied_by_id<<endl;
+    cout<<world[y][x-1].occupied_by_id<<endl;
+    cout<<world[y-1][x-1].occupied_by_id<<endl;
+    cout<<world[y-1][x-1].occupied_by_id<<endl;
+    cout<<world[y-1][x-1].occupied_by_id<<endl;
+    cout<<world[y-1][x-1].occupied_by_id<<endl;
+    cout<<world[y-1][x-1].occupied_by_id<<endl;*/
+
+    if (world[y-1][x-1].occupied_by_id != 0 && findHumanByID(world[y-1][x-1].occupied_by_id).infected == true)
+        return true;
+    else if (world[y-1][x].occupied_by_id != 0 && findHumanByID(world[y-1][x].occupied_by_id).infected == true)
+        return true;
+    else if (world[y-1][x+1].occupied_by_id != 0 && findHumanByID(world[y-1][x+1].occupied_by_id).infected == true)
+        return true;
+    else if (world[y][x-1].occupied_by_id != 0 && findHumanByID(world[y][x-1].occupied_by_id).infected == true)
+        return true;
+    else if (world[y][x].occupied_by_id != 0 && findHumanByID(world[y][x].occupied_by_id).infected == true)
+        return true;
+    else if (world[y][x+1].occupied_by_id != 0 && findHumanByID(world[y][x+1].occupied_by_id).infected == true)
+        return true;
+    else if (world[y+1][x-1].occupied_by_id != 0 && findHumanByID(world[y+1][x-1].occupied_by_id).infected == true)
+        return true;
+    else if (world[y+1][x].occupied_by_id != 0 && findHumanByID(world[y+1][x].occupied_by_id).infected == true)
+        return true;
+    else if (world[y+1][x+1].occupied_by_id != 0 && findHumanByID(world[y+1][x+1].occupied_by_id).infected == true)
+        return true;
+
+    return false;
+}
+
+
+//contact and probability of infection
+
+bool isInfected(float probability)      //returns true if human contracts disease, false if human does not.
+{
+
+    /*Probability (p) is calculated to the
+      nearest 3 decimal places. So by multiplying
+      with 1000 the decimal is removed. For example
+      0.250 becomes 250. Then a random number from
+      1<n<1000 is generated the the random number (rn) lies
+      in the range of 1<rn<p then subject is infected. Else
+      if random number > p i.e 250 in this case, then subject
+      is not infected. This works because the
+      numbers generated are of a uniform distribution so
+      1<n<250 has a probability of 0.250 and 251<n<1000 has
+      a probability of 1-p i.e 0.750 in this case.
+    */
+
+    int RandomNumber = 1 + (rand() % 1000);
+    cout<<"Random number generated is: "<< RandomNumber<<endl;
+    probability = probability * 1000;
+    cout<<"probability typecasting "<<probability<<endl;
+    if (probability >= RandomNumber)
+        return true;
+    else
+        return false;
+}
+
+void CheckAndEvaluateNeighborhood()
+{
+    for (int i = 1 ; i < working_count; i++)
+    {
+        if (!h1[i].infected)
+        {
+           if (SearchNeighborhood(h1[i].current_location.x, h1[i].current_location.y))
+            {
+                cout<<"Neighbor with infection around\n";
+                if(isInfected(h1[i].probability_of_infection))              //call isInfected function if neighborhood human has disease
+                {
+                    cout<<"\nInfection caught\n";
+                    h1[i].infected = true;
+                }
+            }
+        }
+
+
+    }
+
+    for (int i = 1 ; i < not_working_count; i++)
+    {
+        if (!h2[i].infected)
+        {
+            if (SearchNeighborhood(h2[i].current_location.x, h2[i].current_location.y))
+            {
+                if(isInfected(h2[i].probability_of_infection))              //call isInfected function if neighborhood human has disease
+                {
+                    h2[i].infected = true;
+                }
+            }
+        }
+
+    }
+}
+
 
 
 int main()
@@ -357,14 +460,21 @@ int main()
     //Working temp2;
     //Human temp = (Human) temp2;
 
+    srand((unsigned) time(0));
+
     initialize();
 
     while(true)
     {
         system("cls");
+        //check neighborhood for infected people
+        CheckAndEvaluateNeighborhood();
         display_world();
+        //cout<<"current location("<<h1[1].current_location.x<<","<<h1[1].current_location.y<<")"<<endl;
         MakeMove(h1[1]);
         MakeMove(h1[2]);
+
+        cout<<"are you infected? "<<h1[1].infected<<endl;
         //cout<<"\nTravelling to "<< h1[1].travelling << endl <<endl;
         //cout<<"\nLocation is "<< h1[0].GetCurrentLocation().x << endl <<endl;
         getch();
