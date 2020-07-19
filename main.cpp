@@ -17,6 +17,11 @@ struct Coordinates
     int y;
 };
 
+#define rows 6
+#define cols 6
+
+Cell world[rows][cols];
+
 
 class Human
 {
@@ -54,6 +59,8 @@ class Working : public Human
         travelling = 0;                         //Travelling to office at start
         ticks_stuck = 0;
 
+        world[current_location.y][current_location.x].occupied_by_id = ID;
+
 
     }
 
@@ -82,6 +89,8 @@ class Working : public Human
         office_address.y = New_Office_address_y;
     }
 
+    void IncrementTickStuck() { ticks_stuck++; }
+
 
 
 
@@ -103,11 +112,8 @@ class NotWorking : public Human
 };
 
 
-#define rows 6
-#define cols 6
 
-Cell world[rows][cols];
-Working h1[2];
+Working h1[2];          //Humans Declaration
 
 
 void initialize()
@@ -122,13 +128,15 @@ void initialize()
     }
 
     //Get office locations from file
+    world[4][4].isOffice = true;
+
     //Get humans from file
     //Place the humans in an array
     //Place each on the world grid
 
 
-    world[2][3].occupied_by_id = 34;    //Consider putting this in human initialization function
-    world[4][4].isOffice = true;        //Consider putting this in human initialization function
+
+
 
 
     h1[0].initialize_variables(34, 3, 2, false, 0.2, 4, 4 );
@@ -154,14 +162,29 @@ void display_world()
 
 
 //TODO: contact and probability of infection
-//TODO: movement of a human
 
-bool CheckIfNextBlockEmpty(int next_x, int next_y)      //returns false if next space is occupied else true if empty
+
+//movement of a human
+bool CheckIfNextBlockEmpty(Working &h1, int next_x, int next_y)      //returns false if next space is occupied else true if empty
 {
     if (world[next_y][next_x].occupied_by_id == 0 && world[next_y][next_x].isOffice == false)
+    {
         return true;
+    }
     else
-        return false;
+    {
+        if (world[next_y][next_x].occupied_by_id != 0)      //increment ticks stuck
+        {
+            h1.IncrementTickStuck();
+            return false;
+        }
+        else if (world[next_y][next_x].isOffice == true)
+        {
+            h1.travelling = 1;
+            return false;
+        }
+    }
+
 }
 
 void MoveHuman(Working &h1, int next_x, int next_y)
@@ -177,13 +200,13 @@ void MoveHuman(Working &h1, int next_x, int next_y)
 
 }
 
-void MakeMove(Working &h1)
+void MoveToWork(Working &h1)
 {
     //First move in the x axis
     if (h1.GetCurrentLocation().x < h1.GetOfficeAddress().x)
     {
         //Check if next space empty
-        if (CheckIfNextBlockEmpty(h1.GetCurrentLocation().x + 1, h1.GetCurrentLocation().y))
+        if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x + 1, h1.GetCurrentLocation().y))
         {
             //Move to next location
             MoveHuman(h1, h1.GetCurrentLocation().x + 1, h1.GetCurrentLocation().y);
@@ -192,18 +215,20 @@ void MakeMove(Working &h1)
     else if (h1.GetCurrentLocation().x > h1.GetOfficeAddress().x)
     {
         //Check if next space empty
-        if (CheckIfNextBlockEmpty(h1.GetCurrentLocation().x - 1, h1.GetCurrentLocation().y))
+        if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x - 1, h1.GetCurrentLocation().y))
         {
             //Move to next location
             MoveHuman(h1, h1.GetCurrentLocation().x - 1, h1.GetCurrentLocation().y);
         }
     }
+
+    //Second move in the y axis when x = 0
     else if (h1.GetCurrentLocation().x == h1.GetOfficeAddress().x)
     {
         if (h1.GetCurrentLocation().y < h1.GetOfficeAddress().y)
         {
             //Check if next space empty
-            if (CheckIfNextBlockEmpty(h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 1))
+            if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 1))
             {
                 //Move to next location
                 MoveHuman(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 1);
@@ -212,7 +237,7 @@ void MakeMove(Working &h1)
         else if (h1.GetCurrentLocation().y > h1.GetOfficeAddress().y)
         {
             //Check if next space empty
-            if (CheckIfNextBlockEmpty(h1.GetCurrentLocation().x, h1.GetCurrentLocation().y - 1))
+            if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y - 1))
             {
                 //Move to next location
                 MoveHuman(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y -1 );
@@ -220,9 +245,72 @@ void MakeMove(Working &h1)
         }
     }
 
+}
 
+void MoveToHouse(Working &h1)
+{
+    //First move in the x axis
+    if (h1.GetCurrentLocation().x < h1.GetHouseAddress().x)
+    {
+        //Check if next space empty
+        if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x + 1, h1.GetCurrentLocation().y))
+        {
+            //Move to next location
+            MoveHuman(h1, h1.GetCurrentLocation().x + 1, h1.GetCurrentLocation().y);
+        }
+    }
+    else if (h1.GetCurrentLocation().x >  h1.GetHouseAddress().x)
+    {
+        //Check if next space empty
+        if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x - 1, h1.GetCurrentLocation().y))
+        {
+            //Move to next location
+            MoveHuman(h1, h1.GetCurrentLocation().x - 1, h1.GetCurrentLocation().y);
+        }
+    }
 
     //Second move in the y axis when x = 0
+    else if (h1.GetCurrentLocation().x ==  h1.GetHouseAddress().x)
+    {
+        if (h1.GetCurrentLocation().y <  h1.GetHouseAddress().y)
+        {
+            //Check if next space empty
+            if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 1))
+            {
+                //Move to next location
+                MoveHuman(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 1);
+            }
+        }
+        else if (h1.GetCurrentLocation().y >  h1.GetHouseAddress().y)
+        {
+            //Check if next space empty
+            if (CheckIfNextBlockEmpty(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y - 1))
+            {
+                //Move to next location
+                MoveHuman(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y -1 );
+            }
+        }
+    }
+
+    if (h1.GetCurrentLocation().x == h1.GetHouseAddress().x && h1.GetCurrentLocation().y == h1.GetHouseAddress().y)     //Upon reaching home start going back to office
+        h1.travelling = 0;
+
+}
+
+void MakeMove(Working &h1)
+{
+
+    //Go to work
+    if (h1.travelling == 0)
+        MoveToWork(h1);
+    else
+        MoveToHouse(h1);
+    //Go back home
+
+
+
+
+
 }
 
 //TODO: Display number of people currently infected and recovered.
@@ -238,6 +326,7 @@ int main()
         system("cls");
         display_world();
         MakeMove(h1[0]);
+        cout<<"\nTravelling to "<< h1[0].travelling << endl <<endl;
         //cout<<"\nLocation is "<< h1[0].GetCurrentLocation().x << endl <<endl;
         getch();
     }
