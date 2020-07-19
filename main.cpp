@@ -44,6 +44,12 @@ class Working : public Human
     int travelling;
     int ticks_stuck;
 
+    Working()
+    {
+        travelling = 0;                         //Travelling to office at start
+        ticks_stuck = 0;
+    }
+
     void initialize_variables(int id, int Current_location_x, int Current_location_y, bool Infected, float Probability_of_infection, int Office_address_x, int Office_address_y)
     {
         ID = id;
@@ -56,8 +62,6 @@ class Working : public Human
         house_address.y = Current_location_y;
         office_address.x = Office_address_x;
         office_address.y = Office_address_y;
-        travelling = 0;                         //Travelling to office at start
-        ticks_stuck = 0;
 
         world[current_location.y][current_location.x].occupied_by_id = ID;
 
@@ -98,13 +102,17 @@ class Working : public Human
 
 class NotWorking : public Human
 {
-    void initialize_variables(int id, int Current_location_x, int Current_location_y, bool Infected, float Probability_of_infection, int House_address_x, int House_address_y, int Office_address_x, int Office_address_y)
+    public:
+    void initialize_variables(int id, int Current_location_x, int Current_location_y, bool Infected, float Probability_of_infection)
     {
         ID = id;
         current_location.x = Current_location_x;
         current_location.y = Current_location_y;
         infected = Infected;
         probability_of_infection = Probability_of_infection;
+
+
+        world[current_location.y][current_location.x].occupied_by_id = ID;
     }
 
     Coordinates GetCurrentLocation() { return current_location; }
@@ -112,8 +120,11 @@ class NotWorking : public Human
 };
 
 
-
-Working h1[2];          //Humans Declaration
+#define human_count 4
+#define working_count 4
+#define not_working_count 4
+Working h1[working_count];          //Humans Declaration
+NotWorking h2[not_working_count];
 
 
 void initialize()
@@ -132,17 +143,30 @@ void initialize()
 
     //Get humans from file
     //Place the humans in an array
+
+
     //Place each on the world grid
-
-
-
-
-
-
-    h1[0].initialize_variables(34, 3, 2, false, 0.2, 4, 4 );
+                             //id,Current_location_x,  Current_location_y,  Infected,  Probability_of_infection,  House_address_x,  House_address_y,  Office_address_x,  Office_address_y)
+    h1[1].initialize_variables(1, 3, 2, false, 0.200, 4, 4 );
+    h1[2].initialize_variables(2, 5, 1, true, 0.450, 4, 4);
+    h2[1].initialize_variables(3, 2, 1, true, 0.450);
 
 }
 
+Human findHumanByID(int id)
+{
+    for (int i = 1 ; i < working_count; i++)
+    {
+        if (h1[i].GetHumanID() == id)
+            return h1[i];
+    }
+
+    for (int i = 1 ; i < not_working_count; i++)
+    {
+        if (h2[i].GetHumanID() == id)
+            return h2[i];
+    }
+}
 
 void display_world()
 {
@@ -152,7 +176,18 @@ void display_world()
         for(int j = 0; j < cols; j++)
         {
             if (!world[i][j].isOffice)
-                cout<<world[i][j].occupied_by_id<<"\t";
+            {
+                if (world[i][j].occupied_by_id != 0)
+                {
+                    if (findHumanByID(world[i][j].occupied_by_id).infected)
+                        cout<<"i"<<world[i][j].occupied_by_id<<"\t";                //Denote infected as 'i' followed by ID
+                    else
+                        cout<<"c"<<world[i][j].occupied_by_id<<"\t";                //Denote clear/not infected as 'c' followed by ID
+                }
+                else
+                    cout<<world[i][j].occupied_by_id<<"\t";                         //Denote empty spaces as '0' or simply what occupies them which is 0
+
+            }
             else
                 cout<<"W"<<"\t";
         }
@@ -319,14 +354,18 @@ void MakeMove(Working &h1)
 
 int main()
 {
+    //Working temp2;
+    //Human temp = (Human) temp2;
+
     initialize();
 
     while(true)
     {
         system("cls");
         display_world();
-        MakeMove(h1[0]);
-        cout<<"\nTravelling to "<< h1[0].travelling << endl <<endl;
+        MakeMove(h1[1]);
+        MakeMove(h1[2]);
+        //cout<<"\nTravelling to "<< h1[1].travelling << endl <<endl;
         //cout<<"\nLocation is "<< h1[0].GetCurrentLocation().x << endl <<endl;
         getch();
     }
