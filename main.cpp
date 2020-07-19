@@ -8,14 +8,18 @@ struct Cell
     bool isOffice;
 };
 
+struct Coordinates
+{
+    int x;
+    int y;
+};
 
 
 class Human
 {
     public:
     int ID;
-    int current_location_x;
-    int current_location_y;
+    Coordinates current_location;
     bool infected;
     float probability_of_infection;
 };
@@ -23,16 +27,83 @@ class Human
 class Working : public Human
 {
     public:
-    int house_address_x;
-    int house_address_y;
-    int office_address_x;
-    int office_address_y;
+    Coordinates house_address;
+    Coordinates office_address;
     int travelling;
     int ticks_stuck;
+
+    void initialize_variables(int id, int Current_location_x, int Current_location_y, bool Infected, float Probability_of_infection, int House_address_x, int House_address_y, int Office_address_x, int Office_address_y)
+    {
+        ID = id;
+        current_location.x = Current_location_x;
+        current_location.y = Current_location_y;
+        infected = Infected;
+        probability_of_infection = Probability_of_infection;
+
+        house_address.x = House_address_x;
+        house_address.y = House_address_y;
+        office_address.x = Office_address_x;
+        office_address.y = Office_address_y;
+        travelling = 0;                         //Travelling to office at start
+        ticks_stuck = 0;
+
+
+    }
+
+    Coordinates GetCurrentLocation()
+    {
+        return current_location;
+    }
+
+    Coordinates GetHouseAddress()
+    {
+        return house_address;
+    }
+
+    Coordinates GetOfficeAddress()
+    {
+        return office_address;
+    }
+
+    void SetCurrentLocation(int Current_location_x, int Current_location_y)
+    {
+        current_location.x = Current_location_x;
+        current_location.y = Current_location_y;
+    }
+
+    void SetHouseAddress(int House_address_x, int House_address_y)
+    {
+        house_address.x = House_address_x;
+        house_address.y = House_address_y;
+    }
+
+
+    void SetOfficeAddress(int Office_address_x, int Office_address_y)
+    {
+        office_address.x = Office_address_x;
+        office_address.y = Office_address_y;
+    }
+
+
+
+
 };
 
 class NotWorking : public Human
 {
+    void initialize_variables(int id, int Current_location_x, int Current_location_y, bool Infected, float Probability_of_infection, int House_address_x, int House_address_y, int Office_address_x, int Office_address_y)
+    {
+        ID = id;
+        current_location.x = Current_location_x;
+        current_location.y = Current_location_y;
+        infected = Infected;
+        probability_of_infection = Probability_of_infection;
+    }
+
+    Coordinates GetCurrentLocation()
+    {
+        return current_location;
+    }
 
 };
 
