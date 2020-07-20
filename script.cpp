@@ -12,8 +12,8 @@ struct Coordinates
     int y;
 } ;
 
-#define rows 6
-#define cols 6
+#define rows 1000
+#define cols 1000
 
 int world[rows][cols];
 
@@ -37,10 +37,12 @@ int main () {
 
   ofstream myfile;
   myfile.open ("data.txt");
-  //myfile << "Writing this to a file.\n";
 
 
-  int office_count, working_human_count, non_working_human_count;
+  int office_count, working_human_count, non_working_human_count, disease_duration;
+
+  cout<<"Please Enter the average disease duration in humans--> ";
+  cin>> disease_duration;
 
   cout<<"Please Enter the number of offices you want to create--> ";
   cin>> office_count;
@@ -59,6 +61,7 @@ int main () {
       return 0;
   }
 
+  myfile << disease_duration << "\n";
   myfile << office_count <<"\n";
   myfile << working_human_count <<"\n";
   myfile << non_working_human_count <<"\n";
@@ -99,7 +102,7 @@ int main () {
 
           int infected = (rand() % 2);
 
-          float Probability_of_infection = (rand() % 1000)/1000;
+          float Probability_of_infection = (float) (rand() % 1000)/1000;
 
           int index = (rand() % office_count);
 
@@ -128,7 +131,7 @@ int main () {
           int id = working_human_count + i;
           int infected = (rand() % 2);
 
-          float Probability_of_infection = (rand() % 1000)/1000;
+          float Probability_of_infection =  (float) (rand() % 1000)/1000;
 
 
 

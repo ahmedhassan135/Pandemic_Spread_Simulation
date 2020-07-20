@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <fstream>
 #include <conio.h>
 #include <ctime>
 using namespace std;
@@ -18,10 +19,11 @@ struct Coordinates
     int y;
 };
 
-#define rows 6
-#define cols 6
+#define rows 1000
+#define cols 1000
 
 Cell world[rows][cols];
+int disease_duration = 0;
 
 
 class Human
@@ -52,7 +54,7 @@ class Human
     void CatchesInfection()
     {
         infected = true;
-        infectionTimerCountdown = 8;
+        infectionTimerCountdown = disease_duration;
     }
 
 };
@@ -71,11 +73,25 @@ class Working : public Human
         ticks_stuck = 0;
     }
 
+
+    void SetCurrentLocation(int New_location_x, int New_location_y)
+    {
+        if(world[New_location_y][New_location_x].occupied_by_id != 0)
+            cout<<"\nERROR: Location ("<<New_location_x<<","<<New_location_y<<") "<<"already occupied, cannot set new location for: "<<ID<<endl;
+        else
+        {
+            world[current_location.y][current_location.x].occupied_by_id = 0;
+            current_location.x = New_location_x;
+            current_location.y = New_location_y;
+            world[New_location_y][New_location_x].occupied_by_id = ID;
+        }
+
+    }
+
     void initialize_variables(int id, int Current_location_x, int Current_location_y, bool Infected, float Probability_of_infection, int Office_address_x, int Office_address_y)
     {
         ID = id;
-        current_location.x = Current_location_x;
-        current_location.y = Current_location_y;
+        SetCurrentLocation(Current_location_x, Current_location_y);
         probability_of_infection = Probability_of_infection;
 
         house_address.x = Current_location_x;       //Starting location is house location initially
@@ -102,19 +118,7 @@ class Working : public Human
 
     Coordinates GetOfficeAddress() { return office_address; }
 
-    void SetCurrentLocation(int New_location_x, int New_location_y)
-    {
-        if(world[New_location_y][New_location_x].occupied_by_id != 0)
-            cout<<"\nERROR: Location ("<<New_location_x<<","<<New_location_y<<") "<<"already occupied, cannot set new location for: "<<ID<<endl;
-        else
-        {
-            world[current_location.y][current_location.x].occupied_by_id = 0;
-            current_location.x = New_location_x;
-            current_location.y = New_location_y;
-            world[New_location_y][New_location_x].occupied_by_id = ID;
-        }
 
-    }
 
     void SetHouseAddress(int New_house_address_x, int New_house_address_y)
     {
@@ -130,6 +134,8 @@ class Working : public Human
     }
 
     void IncrementTickStuck() { ticks_stuck++; }
+
+    void resetTicksStuck() { ticks_stuck = 0; }
 
 
 
@@ -165,12 +171,11 @@ class NotWorking : public Human
 
 };
 
-
-#define human_count 4
-#define working_count 4
-#define not_working_count 4
-Working h1[working_count];          //Humans Declaration
-NotWorking h2[not_working_count];
+int office_count = 0;
+int working_count = 0;
+int not_working_count = 0;
+Working h1[250000];          //Humans Declaration
+NotWorking h2[250000];
 
 
 void initialize()
@@ -184,38 +189,109 @@ void initialize()
         }
     }
 
-    //Declare count to track humans inserted
-    //Get number of offices and humans from the file
-
-    //Get office locations from file
-    world[4][4].isOffice = true;
-    //world[3][4].isOffice = true;
-
-    //Get humans from file
-    //Place the humans in an array
 
 
-    //Place each on the world grid
-                             //id,Current_location_x,  Current_location_y,  Infected,  Probability_of_infection,  House_address_x,  House_address_y,  Office_address_x,  Office_address_y)
-    h1[1].initialize_variables(1, 2, 2, false, 0.200, 4, 4 );/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    h1[2].initialize_variables(2, 5, 1, true, 0.450, 4, 4);
-    h2[1].initialize_variables(3, 2, 0, true, 0.450);
+    ifstream file("data.txt");
+    if(file.eof())
+        return;
+
+    file>>disease_duration;
+    file>>office_count;
+    file>>working_count;
+    file>>not_working_count;
+
+    for (int i = 0; i < office_count; i++ )
+    {
+        int x,y;
+
+        file>>y;
+        file>>x;
+        world[y][x].isOffice = true;
+
+    }
+
+    for (int i = 1; i <= working_count; i++ )
+    {
+        int id, x, y, officex, officey;
+        bool infected;
+        float probability_infection;
+
+        file>>id;
+        file>>x;
+        file>>y;
+        file>>infected;
+        file>>probability_infection;
+        file>>officex;
+        file>>officey;
+
+        //cout<<id<<"\t"<< x<<"\t"<<  y<<"\t"<<  infected<<"\t"<<  probability_infection<<"\t"<<  officex<<"\t"<<  officey<<endl;
+        //system("pause");
+
+        h1[i].initialize_variables(id, x, y, infected, probability_infection, officex, officey);
+
+
+    }
+
+
+    for (int i = 1; i <= not_working_count; i++ )
+    {
+        int id, x, y;
+        bool infected;
+        float probability_infection;
+
+        file>>id;
+        file>>x;
+        file>>y;
+        file>>infected;
+        file>>probability_infection;
+
+        //cout<<id<<"\t"<< x<<"\t"<<  y<<"\t"<<  infected<<"\t"<<  probability_infection<<"\t"<<  officex<<"\t"<<  officey<<endl;
+        //system("pause");
+
+        h2[i].initialize_variables(id, x, y, infected, probability_infection);
+
+
+    }
 
 }
 
 Human findHumanByID(int id)
 {
-    for (int i = 1 ; i < working_count; i++)
+    for (int i = 1 ; i <= working_count; i++)
     {
         if (h1[i].GetHumanID() == id)
             return h1[i];
     }
 
-    for (int i = 1 ; i < not_working_count; i++)
+    for (int i = 1 ; i <= not_working_count; i++)
     {
         if (h2[i].GetHumanID() == id)
             return h2[i];
     }
+}
+
+int CountNumberInfected()
+{
+    int Total_infected_count = 0;
+    for (int i = 1 ; i <= working_count ; i++)
+    {
+        if (h1[i].infected)
+        {
+            Total_infected_count++;
+        }
+
+    }
+
+    for (int i = 1 ; i <= not_working_count ; i++)
+    {
+        if (h2[i].infected)
+        {
+            Total_infected_count++;
+        }
+
+    }
+    return Total_infected_count;
+
 }
 
 void display_world()
@@ -243,6 +319,12 @@ void display_world()
         }
         cout<<endl<<endl;
     }
+
+
+
+    cout<<"Total infected people: " << CountNumberInfected()<<endl<<endl;
+
+
 }
 
 
@@ -295,7 +377,6 @@ void MoveHuman(Working &h1, int next_x, int next_y)
 
     //move human
     h1.SetCurrentLocation(next_x, next_y);
-    //world[next_y][next_x].occupied_by_id = h1.GetHumanID();
 
 
 
@@ -401,11 +482,46 @@ void MoveToHouse(Working &h1)
 }
 
 
+bool outOfBounds(int y, int x)
+{
+    if (y > 0 && x > 0 && y < rows && x < cols)
+        return false;
+    else
+        return true;
+
+}
+
+void MoveToAnyFreeSpace(Working &h1, int x, int y)
+{
+    if (world[y-1][x-1].occupied_by_id == 0 && world[y-1][x-1].isOffice != true && outOfBounds(y-1, x-1) == false)
+        h1.SetCurrentLocation(x-1,y-1);
+    else if (world[y-1][x].occupied_by_id == 0 && world[y-1][x].isOffice != true && outOfBounds(y-1, x) == false)
+        h1.SetCurrentLocation(x,y-1);
+    else if (world[y-1][x+1].occupied_by_id == 0 && world[y-1][x+1].isOffice != true && outOfBounds(y-1, x+1) == false)
+        h1.SetCurrentLocation(x+1,y-1);
+    else if (world[y][x-1].occupied_by_id == 0 && world[y][x-1].isOffice != true && outOfBounds(y, x-1) == false)
+        h1.SetCurrentLocation(x-1,y);
+    else if (world[y][x].occupied_by_id == 0 && world[y][x].isOffice != true && outOfBounds(y, x) == false)
+        h1.SetCurrentLocation(x,y);
+    else if (world[y][x+1].occupied_by_id == 0 && world[y][x+1].isOffice != true && outOfBounds(y, x+1) == false)
+        h1.SetCurrentLocation(x+1,y);
+    else if (world[y+1][x-1].occupied_by_id == 0 && world[y+1][x-1].isOffice != true && outOfBounds(y+1, x-1) == false)
+        h1.SetCurrentLocation(x-1,y+1);
+    else if (world[y+1][x].occupied_by_id == 0 && world[y+1][x].isOffice != true && outOfBounds(y+1, x) == false)
+        h1.SetCurrentLocation(x,y+1);
+    else if (world[y+1][x+1].occupied_by_id == 0 && world[y+1][x+1].isOffice != true && outOfBounds(y+1, x+1) == false)
+        h1.SetCurrentLocation(x+1,y+1);
+
+    h1.resetTicksStuck();
+
+}
+
 void MakeMove(Working &h1)
 {
-
+    if (h1.ticks_stuck > 8)
+        MoveToAnyFreeSpace(h1, h1.GetCurrentLocation().x, h1.GetCurrentLocation().y);
     //Go to work
-    if (h1.travelling == 0)
+    else if (h1.travelling == 0)
         MoveToWork(h1);
     else
         MoveToHouse(h1);
@@ -417,7 +533,6 @@ void MakeMove(Working &h1)
 
 }
 
-//TODO: Display number of people currently infected and recovered.
 
 bool SearchNeighborhood(int x, int y)       //checks neighborhood for infected humans  return true if any neighbor has disease
 {
@@ -447,7 +562,6 @@ bool SearchNeighborhood(int x, int y)       //checks neighborhood for infected h
 
 
 //contact and probability of infection
-
 bool isInfected(float probability)      //returns true if human contracts disease, false if human does not.
 {
 
@@ -465,27 +579,27 @@ bool isInfected(float probability)      //returns true if human contracts diseas
     */
 
     int RandomNumber = 1 + (rand() % 1000);
-    cout<<"Random number generated is: "<< RandomNumber<<endl;
+    //cout<<"Random number generated is: "<< RandomNumber<<endl;
     probability = probability * 1000;
-    cout<<"probability typecasting "<<probability<<endl;
     if (probability >= RandomNumber)
         return true;
     else
         return false;
 }
 
+//Check and see if any neighbors have virus and uses a probabilistic model to predict if human catches virus
 void CheckAndEvaluateNeighborhood()
 {
-    for (int i = 1 ; i < working_count; i++)
+    for (int i = 1 ; i <= working_count; i++)
     {
         if (!h1[i].infected)
         {
+           // cout<<"All possible Neighbours : "<< h1[i].current_location.x<<" "<< h1[i].current_location.y<<"    "<<SearchNeighborhood(h1[i].current_location.x, h1[i].current_location.y)<<endl;
            if (SearchNeighborhood(h1[i].current_location.x, h1[i].current_location.y))
             {
-                cout<<"Neighbor with infection around\n";
                 if(isInfected(h1[i].probability_of_infection))              //call isInfected function if neighborhood human has disease
                 {
-                    cout<<"\nInfection caught\n";
+                    //cout<<"\nInfection caught: "<<h1[i].GetHumanID()<<endl;
                     h1[i].CatchesInfection();
                     //h1[i].infected = true;
                 }
@@ -495,14 +609,16 @@ void CheckAndEvaluateNeighborhood()
 
     }
 
-    for (int i = 1 ; i < not_working_count; i++)
+    for (int i = 1 ; i <= not_working_count; i++)
     {
         if (!h2[i].infected)
         {
+            //cout<<"All possible Neighbours : "<< h2[i].current_location.x<<" "<< h2[i].current_location.y<<"    "<<SearchNeighborhood(h2[i].current_location.x, h1[i].current_location.y)<<endl;
             if (SearchNeighborhood(h2[i].current_location.x, h2[i].current_location.y))
             {
                 if(isInfected(h2[i].probability_of_infection))              //call isInfected function if neighborhood human has disease
                 {
+                    //cout<<"\nInfection caught: "<<h2[i].GetHumanID()<<endl;
                     h2[i].CatchesInfection();
                     //h2[i].infected = true;
                 }
@@ -514,7 +630,7 @@ void CheckAndEvaluateNeighborhood()
 
 void UpdateInfectionTimers()
 {
-    for (int i = 1 ; i < working_count; i++)
+    for (int i = 1 ; i <= working_count; i++)
     {
         if (h1[i].infected)
         {
@@ -524,7 +640,7 @@ void UpdateInfectionTimers()
 
     }
 
-    for (int i = 1 ; i < not_working_count; i++)
+    for (int i = 1 ; i <= not_working_count; i++)
     {
         if (h2[i].infected)
         {
@@ -536,36 +652,47 @@ void UpdateInfectionTimers()
 }
 
 
+void tick()
+{
+    for (int i = 1 ; i < working_count; i++)
+    {
+           MakeMove(h1[i]);
+    }
+}
+
+
 int main()
 {
-    //Working temp2;
-    //Human temp = (Human) temp2;
-
     srand((unsigned) time(0));
 
     initialize();
+    cout<<"Initialization complete\n\n";
+    //display_world();
 
-    while(true)
+    system("pause");
+
+    int k = 0;
+
+    while(k < 1000)
     {
         system("cls");
-        //check neighborhood for infected people
-        CheckAndEvaluateNeighborhood();
+
+        CheckAndEvaluateNeighborhood();             //check neighborhood for infected people
         UpdateInfectionTimers();
-        display_world();
-        //cout<<"current location("<<h1[1].current_location.x<<","<<h1[1].current_location.y<<")"<<endl;
-        MakeMove(h1[1]);
-        MakeMove(h1[2]);
+        //display_world();
+        //getch();
+        tick();
 
-        cout<<"are you infected? "<<h1[1].infected<<endl;
-        //cout<<"\nTravelling to "<< h1[1].travelling << endl <<endl;
-        //cout<<"\nLocation is "<< h1[0].GetCurrentLocation().x << endl <<endl;
-        getch();
+        if (k%10 == 0)
+        {
+            cout<<"Total infected people: " << CountNumberInfected()<<endl<<endl;
+            system("pause");
+        }
+
+        k++;
+
+
     }
-
-
-
-
-    //cout<<rows<<" "<<cols<<endl;
 
     return 0;
 }
