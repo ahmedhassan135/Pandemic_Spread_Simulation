@@ -184,6 +184,9 @@ void initialize()
         }
     }
 
+    //Declare count to track humans inserted
+    //Get number of offices and humans from the file
+
     //Get office locations from file
     world[4][4].isOffice = true;
     //world[3][4].isOffice = true;
