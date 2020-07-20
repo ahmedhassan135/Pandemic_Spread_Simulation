@@ -31,9 +31,29 @@ class Human
     Coordinates current_location;
     bool infected;
     float probability_of_infection;
+    int infectionTimerCountdown;
 
 
     int GetHumanID() { return ID; }
+
+    void DecrementInfectionTimerCountdown()
+    {
+        if (infectionTimerCountdown == 1 || infectionTimerCountdown == 0)
+        {
+            infectionTimerCountdown = 0;
+            infected = false;
+
+            probability_of_infection = probability_of_infection / 4;            //immunity increases after recovery so probability decreases by 4
+        }
+        else
+            infectionTimerCountdown--;
+    }
+
+    void CatchesInfection()
+    {
+        infected = true;
+        infectionTimerCountdown = 8;
+    }
 
 };
 
@@ -56,7 +76,6 @@ class Working : public Human
         ID = id;
         current_location.x = Current_location_x;
         current_location.y = Current_location_y;
-        infected = Infected;
         probability_of_infection = Probability_of_infection;
 
         house_address.x = Current_location_x;       //Starting location is house location initially
@@ -65,6 +84,14 @@ class Working : public Human
         office_address.y = Office_address_y;
 
         world[current_location.y][current_location.x].occupied_by_id = ID;
+
+        if (Infected)
+        {
+            CatchesInfection();
+            //infectionTimerCountdown = 8;
+        }
+        else
+            infectionTimerCountdown = 0;
 
 
     }
@@ -122,9 +149,19 @@ class NotWorking : public Human
 
 
         world[current_location.y][current_location.x].occupied_by_id = ID;
+
+        if (Infected)
+        {
+            CatchesInfection();
+            //infectionTimerCountdown = 8;
+        }
+        else
+            infectionTimerCountdown = 0;
     }
 
     Coordinates GetCurrentLocation() { return current_location; }
+
+
 
 };
 
@@ -149,7 +186,7 @@ void initialize()
 
     //Get office locations from file
     world[4][4].isOffice = true;
-    world[3][4].isOffice = true;
+    //world[3][4].isOffice = true;
 
     //Get humans from file
     //Place the humans in an array
@@ -157,7 +194,7 @@ void initialize()
 
     //Place each on the world grid
                              //id,Current_location_x,  Current_location_y,  Infected,  Probability_of_infection,  House_address_x,  House_address_y,  Office_address_x,  Office_address_y)
-    h1[1].initialize_variables(1, 2, 2, false, 0.200, 4, 4 );
+    h1[1].initialize_variables(1, 2, 2, false, 0.200, 4, 4 );/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     h1[2].initialize_variables(2, 5, 1, true, 0.450, 4, 4);
     h2[1].initialize_variables(3, 2, 0, true, 0.450);
 
@@ -382,16 +419,6 @@ void MakeMove(Working &h1)
 bool SearchNeighborhood(int x, int y)       //checks neighborhood for infected humans  return true if any neighbor has disease
 {
 
-   /*cout<<"here"<<endl;
-    cout<<world[y-1][x-1].occupied_by_id<<endl;
-    cout<<world[y-1][x].occupied_by_id<<endl;
-    cout<<world[y-1][x+1].occupied_by_id<<endl;
-    cout<<world[y][x-1].occupied_by_id<<endl;
-    cout<<world[y-1][x-1].occupied_by_id<<endl;
-    cout<<world[y-1][x-1].occupied_by_id<<endl;
-    cout<<world[y-1][x-1].occupied_by_id<<endl;
-    cout<<world[y-1][x-1].occupied_by_id<<endl;
-    cout<<world[y-1][x-1].occupied_by_id<<endl;*/
 
     if (world[y-1][x-1].occupied_by_id != 0 && findHumanByID(world[y-1][x-1].occupied_by_id).infected == true)
         return true;
@@ -456,7 +483,8 @@ void CheckAndEvaluateNeighborhood()
                 if(isInfected(h1[i].probability_of_infection))              //call isInfected function if neighborhood human has disease
                 {
                     cout<<"\nInfection caught\n";
-                    h1[i].infected = true;
+                    h1[i].CatchesInfection();
+                    //h1[i].infected = true;
                 }
             }
         }
@@ -472,7 +500,8 @@ void CheckAndEvaluateNeighborhood()
             {
                 if(isInfected(h2[i].probability_of_infection))              //call isInfected function if neighborhood human has disease
                 {
-                    h2[i].infected = true;
+                    h2[i].CatchesInfection();
+                    //h2[i].infected = true;
                 }
             }
         }
@@ -480,6 +509,28 @@ void CheckAndEvaluateNeighborhood()
     }
 }
 
+void UpdateInfectionTimers()
+{
+    for (int i = 1 ; i < working_count; i++)
+    {
+        if (h1[i].infected)
+        {
+           h1[i].DecrementInfectionTimerCountdown();
+        }
+
+
+    }
+
+    for (int i = 1 ; i < not_working_count; i++)
+    {
+        if (h2[i].infected)
+        {
+            h2[i].DecrementInfectionTimerCountdown();
+        }
+
+    }
+
+}
 
 
 int main()
@@ -496,6 +547,7 @@ int main()
         system("cls");
         //check neighborhood for infected people
         CheckAndEvaluateNeighborhood();
+        UpdateInfectionTimers();
         display_world();
         //cout<<"current location("<<h1[1].current_location.x<<","<<h1[1].current_location.y<<")"<<endl;
         MakeMove(h1[1]);
