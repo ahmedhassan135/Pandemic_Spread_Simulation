@@ -257,7 +257,54 @@ void initialize()
 
 Human findHumanByID(int id)
 {
-    for (int i = 1 ; i <= working_count; i++)
+    /*if (id <= working_count)
+        return h1[id];
+    else if (id > working_count)
+        return h2[id - working_count];
+    */
+
+
+
+    //Binary search implementation, should the order of id's change, Use this approach.
+    int l = 1;
+    int r = working_count;
+
+
+    while (l <= r)
+    {
+        int m = l + (r - l) / 2;
+
+        if (h1[m].GetHumanID() == id)
+            return h1[m];
+
+        if (h1[m].GetHumanID() < id)
+            l = m + 1;
+
+        else
+            r = m - 1;
+    }
+
+    l = 1;
+    r = not_working_count;
+
+
+    while (l <= r)
+    {
+        int m = l + (r - l) / 2;
+
+        if (h2[m].GetHumanID() == id)
+            return h2[m];
+
+        if (h2[m].GetHumanID() < id)
+            l = m + 1;
+
+        else
+            r = m - 1;
+    }
+
+
+    //Linear Search method. (Slowest)
+    /*for (int i = 1 ; i <= working_count; i++)
     {
         if (h1[i].GetHumanID() == id)
             return h1[i];
@@ -267,7 +314,10 @@ Human findHumanByID(int id)
     {
         if (h2[i].GetHumanID() == id)
             return h2[i];
-    }
+    }*/
+
+
+
 }
 
 int CountNumberInfected()
@@ -668,6 +718,8 @@ int main()
     initialize();
     cout<<"Initialization complete\n\n";
     //display_world();
+
+
 
     system("pause");
 
