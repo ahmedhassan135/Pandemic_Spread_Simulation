@@ -404,13 +404,13 @@ bool CheckIfNextBlockEmpty(Working &h1, int next_x, int next_y)      //returns f
         else if (world[next_y][next_x].isOffice == true)                //If some other work office comes in the way of traveling human
         {
             //If obstruction is in the next x cell.
-            if (h1.GetCurrentLocation().x != next_x && world[h1.GetCurrentLocation().y + 1][h1.GetCurrentLocation().x].occupied_by_id == 0 && world[h1.GetCurrentLocation().y + 1][h1.GetCurrentLocation().x].isOffice == false)
+            if (h1.GetCurrentLocation().x != next_x && world[h1.GetCurrentLocation().y + 1][h1.GetCurrentLocation().x].occupied_by_id == 0 && h1.GetCurrentLocation().y + 1 < rows && world[h1.GetCurrentLocation().y + 1][h1.GetCurrentLocation().x].isOffice == false)
                 h1.SetCurrentLocation(h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 1);
-            else if (h1.GetCurrentLocation().x != next_x && world[h1.GetCurrentLocation().y - 1][h1.GetCurrentLocation().x].occupied_by_id == 0 &&world[h1.GetCurrentLocation().y - 1][h1.GetCurrentLocation().x].isOffice == false)
+            else if (h1.GetCurrentLocation().x != next_x && world[h1.GetCurrentLocation().y - 1][h1.GetCurrentLocation().x].occupied_by_id == 0 && h1.GetCurrentLocation().y - 1 >= 0 &&world[h1.GetCurrentLocation().y - 1][h1.GetCurrentLocation().x].isOffice == false)
                 h1.SetCurrentLocation(h1.GetCurrentLocation().x, h1.GetCurrentLocation().y - 1);
 
             //If obstruction is in the next y cell.     skip 1 y and check if the work is one skip away as well
-            else if (h1.GetCurrentLocation().y != next_y && world[h1.GetCurrentLocation().y + 2][h1.GetCurrentLocation().x].occupied_by_id == 0)
+            else if (h1.GetCurrentLocation().y != next_y && world[h1.GetCurrentLocation().y + 2][h1.GetCurrentLocation().x].occupied_by_id == 0 && h1.GetCurrentLocation().y + 2 < rows)
                 h1.SetCurrentLocation(h1.GetCurrentLocation().x, h1.GetCurrentLocation().y + 2);
 
 
@@ -704,7 +704,7 @@ void UpdateInfectionTimers()
 
 void tick()
 {
-    for (int i = 1 ; i < working_count; i++)
+    for (int i = 1 ; i <= working_count; i++)
     {
            MakeMove(h1[i]);
     }
@@ -721,7 +721,7 @@ int main()
 
 
 
-    system("pause");
+    //system("pause");
 
     int k = 0;
 
@@ -730,10 +730,13 @@ int main()
         system("cls");
 
         CheckAndEvaluateNeighborhood();             //check neighborhood for infected people
+
         UpdateInfectionTimers();
+
         //display_world();
-        //getch();
+
         tick();
+        //system("pause");
 
         if (k%10 == 0)
         {
