@@ -1,6 +1,6 @@
 # Pandemic_Spread_Simulation
 
-Note: Upon recovery, a persons immunity to the virus increases. To factor that into the code, when a person recovers the probability of infection is reduced by a factor of 4 
+Note: Upon recovery, a persons immunity to the virus increases. To factor that into the code, what I did was that when a person recovers the probability of infection is reduced by a factor of 4 
 (probability_of_infection/4). This process causes a hindrance in the spread of the virus and causes a drop in infections over a period of time.
 
 The zip file shows a simple 15x15 world grid with elements interacting with each other. This is for demonstration purpose because showing the real 1000x1000 grid is
